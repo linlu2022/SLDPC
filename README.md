@@ -109,25 +109,6 @@ pip install -r requirements.txt
 pip install -e .
 ```
 
-**Alternative: venv (Windows PowerShell)**
-
-```powershell
-py -3.9 -m venv .venv
-.\.venv\Scripts\Activate.ps1
-
-python -m pip install --upgrade pip
-pip install -r requirements.txt
-pip install -e .
-```
-
-If PowerShell activation fails with *"running scripts is disabled on
-this system"*, allow it for the current session only:
-
-```powershell
-Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
-.\.venv\Scripts\Activate.ps1
-```
-
 **Verify the GPU is picked up**
 
 ```bash

@@ -1,0 +1,35 @@
+# TCGA-RCC zero-shot prompt synonyms.
+#
+# Class codes (matching configs/datasets/tcga_rcc.yaml class_names).
+# The codebase uses the OncoTree codes; the paper §4.1 maps them as:
+#   CCRCC / KIRC - Clear cell renal cell carcinoma
+#   CHRCC / KICH - Chromophobe renal cell carcinoma
+#   PRCC  / KIRP - Papillary renal cell carcinoma
+#
+# Adjust the keys below if your dataset yaml uses KIRC/KICH/KIRP
+# instead of CCRCC/CHRCC/PRCC.
+
+prompts:
+  CCRCC:
+    - clear cell renal cell carcinoma
+    - renal clear cell carcinoma
+    - clear cell carcinoma of the kidney
+    - clear cell RCC
+    - CCRCC
+    - KIRC
+
+  CHRCC:
+    - chromophobe renal cell carcinoma
+    - chromophobe carcinoma of the kidney
+    - chromophobe RCC
+    - renal cell carcinoma, chromophobe type
+    - CHRCC
+    - KICH
+
+  PRCC:
+    - papillary renal cell carcinoma
+    - papillary carcinoma of the kidney
+    - papillary RCC
+    - renal cell carcinoma, papillary type
+    - PRCC
+    - KIRP

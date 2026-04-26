@@ -1,0 +1,53 @@
+# ============================================================================
+# TITAN backbone configuration for SLDPC
+#
+# Defaults here reproduce the **legacy SLDPC-TITAN numerical behavior**
+# that produced the main-table numbers in the paper. Paper §4.1 text
+# describes a slightly different setup (lr=1e-4, wd=1e-5, patience=15);
+# the difference comes from the original reference implementation and
+# is preserved in defaults to keep reproducibility tight.
+#
+# To explicitly run with the "paper-text" or modern tau-scaled numerics,
+# flip the opt-in switches in the "Behavior toggles" block below.
+# ============================================================================
+
+# ---- Prompt learner ----
+n_ctx: 8                       # paper default M=8
+ctx_init: null                 # null => random N(0, 0.02); alternatively "a_photo_of"
+csc: false                     # false => class-unified context (paper Sec. 4.4)
+class_token_position: end      # "end" | "middle" | "front"
+omega: 0.8                     # WFM fusion weight (paper Fig. 4 optimum)
+
+# ---- Optimization (aligned with legacy SLDPC-TITAN CLI defaults) ----
+stage1_lr: 1.0e-3              # was 1.0e-4. Old train.py CLI default.
+stage2_lr: 1.0e-3              # was 1.0e-4. Old trainer_dpc.py default.
+weight_decay: 0.0              # was 1.0e-5. Old code did not pass wd.
+stage1_epochs: 50              # matches old train.py --epochs 50
+stage2_epochs: 50              # matches typical experiments (old CLI default was 20)
+patience: 100                  # was 15. Old es_patience (effectively "no early stop").
+tau: 0.07                      # used for symmetric InfoNCE and eval softmax (if enabled)
+
+# ---- Behavior toggles: opt-in to tau-scaled numerics (paper Eq. 7 form) ----
+# Set any of these to ``true`` to override the legacy behavior.
+stage1_apply_tau: false        # false => CE on raw cosine (legacy); true => CE on cos/tau
+stage2_ce_apply_tau: false     # false => same, for stage-2 CE ablation modes
+eval_apply_tau_in_softmax: false  # false => softmax(cos); true => softmax(cos/tau)
+
+# ---- Optional LR scheduler (old code used ReduceLROnPlateau) ----
+use_lr_scheduler: false        # true to enable ReduceLROnPlateau(mode='max', factor=0.1, patience=8)
+scheduler_factor: 0.1
+scheduler_patience: 8
+
+# ---- Stage-2 DHNO ----
+topk: 8                        # paper's default; clamped below by num_classes
+stage2_dhno_mode: full         # "full" | "sampling_only" | "none"
+stage2_negative_sampling: hns  # "hns" | "random"
+stage2_loss: symmetric         # "symmetric" | "i2t" | "t2i" | "ce"
+stage2_eval_mode: fused        # "fused" | "task" | "base"
+
+# ---- Data loading ----
+batch_size: 4                  # capped by training-set size in few-shot regimes
+num_workers: 0
+
+# ---- Selection / validation ----
+monitor_metric: F1             # "ACC" | "F1" | "AUC"

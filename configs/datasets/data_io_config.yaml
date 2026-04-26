@@ -1,0 +1,45 @@
+# Unified dataset CSV I/O config for SLDPC.
+# This replaces legacy per-dataset "Base_to_New-*.yaml" usage in runtime logic.
+
+version: 1
+
+datasets:
+  tcga_rcc:
+    all_slides_csv: data/datasets/tcga_rcc/TCGA-RCC.csv
+    csv_schema:
+      all_slides:
+        slide_id_col: slide_id
+        label_col: OncoTreeCode
+      fixed:
+        slide_id_col: slide_id
+        label_col: OncoTreeCode
+
+  tcga_nsclc:
+    all_slides_csv: data/datasets/tcga_nsclc/TCGA-NSCLC.csv
+    csv_schema:
+      all_slides:
+        slide_id_col: slide_id
+        label_col: OncoTreeCode
+      fixed:
+        slide_id_col: slide_id
+        label_col: OncoTreeCode
+
+  ubc_ocean:
+    all_slides_csv: data/datasets/ubc_ocean/UBC-OCEAN_all.csv
+    csv_schema:
+      all_slides:
+        slide_id_col: slide_id
+        label_col: label
+      fixed:
+        slide_id_col: slide_id
+        label_col: label
+
+  tcga_ot:
+    all_slides_csv: data/datasets/tcga_ot/tcga-ot_all.csv
+    csv_schema:
+      all_slides:
+        slide_id_col: slide_id
+        label_col: OncoTreeCode
+      fixed:
+        slide_id_col: slide_id
+        label_col: OncoTreeCode

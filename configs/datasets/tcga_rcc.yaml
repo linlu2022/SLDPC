@@ -1,0 +1,17 @@
+# ============================================================================
+# TCGA-RCC (renal cell carcinoma) configuration
+#
+# Three-class subtyping of kidney cancer. Sec. 4.1 of the paper.
+# ============================================================================
+
+name: tcga_rcc
+task_type: subtyping
+num_classes: 3
+
+class_names:
+  - CCRCC    # clear-cell RCC (a.k.a. KIRC)
+  - CHRCC    # chromophobe RCC (a.k.a. KICH)
+  - PRCC     # papillary RCC   (a.k.a. KIRP)
+
+# See configs/datasets/ubc_ocean.yaml for the all_slides_csv schema.
+# all_slides_csv: <your_path>/all_slides.csv

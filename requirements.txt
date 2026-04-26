@@ -1,0 +1,61 @@
+# ============================================================================
+# SLDPC: runtime dependencies
+#
+# Versions below mirror the verified paper-reproduction environment
+# (Python 3.9, NVIDIA GPU, CUDA 11.7) exactly. The same combination has
+# been used to produce all numbers reported in the paper.
+#
+# Default install command:
+#
+#     pip install -r requirements.txt
+#
+# This pulls the GPU build of PyTorch from PyTorch's CUDA 11.7 index.
+# The CUDA 11.7 wheels are forward-compatible with newer NVIDIA drivers,
+# so this combination works on machines with CUDA 11.7 / 11.8 / 12.x
+# drivers without changes.
+#
+# CPU-only / no NVIDIA GPU
+# ------------------------
+# If you have no NVIDIA GPU (e.g. on a Mac, or a CPU-only Linux box), the
+# ``--index-url`` line below will fail to resolve a wheel. Replace the
+# three pinned ``torch*`` lines with their plain CPU equivalents, e.g.::
+#
+#     torch==2.0.1
+#     torchvision==0.15.2
+#
+# and remove the ``--index-url`` line. Training will run on CPU but be
+# significantly slower.
+# ============================================================================
+
+# -- Deep learning (CUDA 11.7 wheels) ---------------------------------------
+--index-url https://download.pytorch.org/whl/cu117
+--extra-index-url https://pypi.org/simple
+
+torch==2.0.1+cu117
+torchvision==0.15.2+cu117
+
+# -- Core numerical stack ----------------------------------------------------
+numpy==1.26.4
+scipy==1.13.1
+scikit-learn==1.5.2
+pandas==2.2.3
+pyyaml==6.0.2
+
+# -- HuggingFace integration (TITAN loading) ---------------------------------
+# transformers MUST be 4.46.x — newer versions break TITAN trust_remote_code.
+transformers==4.46.0
+huggingface-hub==0.30.2
+safetensors==0.5.3
+tokenizers==0.20.3
+
+# -- TITAN modeling-time requirements ---------------------------------------
+# Imported inside MahmoodLab/TITAN's modeling files via trust_remote_code.
+# Pinned to upstream's setup.py to keep the load path identical.
+timm==1.0.3
+einops==0.6.1
+einops-exts==0.0.4
+h5py==3.8.0
+
+# -- Logging / progress / utilities ------------------------------------------
+tqdm==4.66.6
+tensorboard==2.19.0

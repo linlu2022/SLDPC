@@ -1,0 +1,31 @@
+# ============================================================================
+# UBC-OCEAN dataset configuration
+#
+# Five histological subtypes of ovarian cancer, as described in
+# Sec. 4.1 of the paper.
+# ============================================================================
+
+name: ubc_ocean
+task_type: subtyping
+num_classes: 5
+
+# Ordered class names. Index = label id.
+class_names:
+  - CC       # clear cell carcinoma
+  - EC       # endometrioid carcinoma
+  - HGSC     # high-grade serous carcinoma
+  - LGSC     # low-grade serous carcinoma
+  - MC       # mucinous carcinoma
+
+# Optional: a pre-computed "slide_id,class_name" CSV for the full
+# universe of slides. If omitted, the train script derives the
+# universe from the feature store by matching class names against
+# filenames or parent directories. Typically you DO want to provide
+# this so the universe is deterministic and independent of file naming.
+#
+# Format: two columns, no header:
+#     <slide_id>,<class_name>
+#
+# Uncomment and point to your local copy:
+#
+# all_slides_csv: <your_path>/all_slides.csv

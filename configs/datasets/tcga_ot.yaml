@@ -1,0 +1,61 @@
+# ============================================================================
+# TCGA-OT (OncoTree 46-class) configuration
+#
+# Multi-class slide subtyping benchmark used in SLDPC experiments.
+# Class order follows the label_dict in data/datasets/tcga_ot/config_tcga-ot.yaml.
+# ============================================================================
+
+name: tcga_ot
+task_type: subtyping
+num_classes: 46
+
+class_names:
+  - AASTR
+  - ACC
+  - AOAST
+  - ASTR
+  - BLCA
+  - CCRCC
+  - CESC
+  - CHRCC
+  - COAD
+  - DDLS
+  - DSTAD
+  - ESCA
+  - ESCC
+  - GBM
+  - HCC
+  - HGSOC
+  - HNSC
+  - IDC
+  - ILC
+  - LMS
+  - LUAD
+  - LUSC
+  - MACR
+  - MEL
+  - MFH
+  - MFS
+  - NSGCT
+  - OAST
+  - ODG
+  - PAAD
+  - PHC
+  - PLEMESO
+  - PRAD
+  - PRCC
+  - READ
+  - SEM
+  - SKCM
+  - STAD
+  - THFO
+  - THPA
+  - THYM
+  - TSTAD
+  - UCS
+  - UEC
+  - UM
+  - USC
+
+# Optional:
+# all_slides_csv: <your_path>/all_slides.csv

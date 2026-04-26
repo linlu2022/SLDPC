@@ -1,0 +1,22 @@
+# TCGA-NSCLC zero-shot prompt synonyms.
+#
+# Class codes (matching configs/datasets/tcga_nsclc.yaml class_names):
+#   LUAD - Lung adenocarcinoma
+#   LUSC - Lung squamous cell carcinoma
+#
+# Synonyms borrowed from data/datasets/zero_shot_prompts/tcga_ot.yaml
+# (which already covers LUAD / LUSC under the pan-cancer setting).
+
+prompts:
+  LUAD:
+    - lung adenocarcinoma
+    - adenocarcinoma of the lung
+    - pulmonary adenocarcinoma
+    - peripheral lung adenocarcinoma
+    - LUAD
+
+  LUSC:
+    - lung squamous cell carcinoma
+    - squamous cell carcinoma of the lung
+    - squamous carcinoma of the lung
+    - LUSC

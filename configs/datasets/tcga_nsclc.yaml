@@ -1,0 +1,17 @@
+# ============================================================================
+# TCGA-NSCLC (non-small-cell lung cancer) configuration
+#
+# Two-class subtyping: lung adenocarcinoma (LUAD) vs. lung squamous
+# cell carcinoma (LUSC). Sec. 4.1 of the paper.
+# ============================================================================
+
+name: tcga_nsclc
+task_type: subtyping
+num_classes: 2
+
+class_names:
+  - LUAD
+  - LUSC
+
+# See configs/datasets/ubc_ocean.yaml for the all_slides_csv schema.
+# all_slides_csv: <your_path>/all_slides.csv

@@ -1,0 +1,50 @@
+# UBC-OCEAN zero-shot prompt synonyms for use with TITAN's
+# `zero_shot_classifier(class_prompts_list, TEMPLATES)`.
+#
+# Each list under `prompts:` is the set of *natural-language synonyms*
+# for the class. At zero-shot time, each synonym is plugged into each
+# of the 23 TEMPLATES (see ``sldpc/utils/zero_shot.py``), giving
+# `len(synonyms) * 23` text prompts per class. Their text embeddings
+# are averaged and L2-normalized to form the class weight column.
+#
+# Class codes (matching configs/datasets/ubc_ocean.yaml class_names):
+#   CC   - Clear Cell carcinoma
+#   EC   - Endometrioid Carcinoma
+#   HGSC - High-Grade Serous Carcinoma
+#   LGSC - Low-Grade Serous Carcinoma
+#   MC   - Mucinous Carcinoma
+#
+# The synonym pools mirror the convention used in legacy
+# data/datasets/zero_shot_prompts/tcga_ot.yaml: pathologist-style
+# disease names + the bare class code as a fallback.
+
+prompts:
+  CC:
+    - clear cell carcinoma of the ovary
+    - ovarian clear cell carcinoma
+    - clear cell carcinoma
+    - CC
+
+  EC:
+    - endometrioid carcinoma of the ovary
+    - ovarian endometrioid carcinoma
+    - endometrioid carcinoma
+    - EC
+
+  HGSC:
+    - high-grade serous carcinoma of the ovary
+    - ovarian high-grade serous carcinoma
+    - high-grade serous ovarian cancer
+    - HGSC
+
+  LGSC:
+    - low-grade serous carcinoma of the ovary
+    - ovarian low-grade serous carcinoma
+    - low-grade serous ovarian cancer
+    - LGSC
+
+  MC:
+    - mucinous carcinoma of the ovary
+    - ovarian mucinous carcinoma
+    - mucinous adenocarcinoma of the ovary
+    - MC

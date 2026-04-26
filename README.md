@@ -72,7 +72,7 @@ SLDPC/
 
 ---
 
-## 1. Installation
+## Installation
 
 > **Versions are pinned.** TITAN's `trust_remote_code` modeling files
 > were written against `transformers==4.46.0` and `torch==2.0.1+cu117`,
@@ -84,8 +84,7 @@ SLDPC/
 
 `requirements.txt` installs the GPU build of PyTorch from PyTorch's
 CUDA 11.7 wheel index. The cu117 wheels are forward-compatible with
-newer NVIDIA drivers (CUDA 11.8 / 12.x), so this works on most
-modern systems without changes.
+newer NVIDIA drivers (CUDA 11.8 / 12.x).
 
 **Recommended: conda + Python 3.9**
 
@@ -138,7 +137,7 @@ torchvision==0.15.2
 
 ---
 
-## 2. Authenticate for TITAN
+## Authenticate for TITAN
 
 This codebase loads the TITAN backbone directly from the official
 Hugging Face model hub at <https://huggingface.co/MahmoodLab/TITAN>.
@@ -165,7 +164,7 @@ python scripts/train_titan.py \
 
 ---
 
-## 3. Prepare slide-level features
+## Prepare slide-level features
 
 This codebase consumes **pre-extracted slide-level features**, not raw WSIs.
 Each dataset is loaded from a single `.pkl` file with two keys:
@@ -217,7 +216,7 @@ single `.pkl` matching the schema above.
 
 ---
 
-## 4. Run the main experiment
+## Run the main experiment
 
 A complete TCGA-OT run, 16-shot, 5 random seeds, using the default
 20/80 stratified split generated per seed:
@@ -255,27 +254,7 @@ python scripts/train_titan.py --help
 
 ---
 
-## 5. Citation
-
-```bibtex
-@article{yuan2026sldpc,
-  title={SLDPC: Slide-Level Dual-Prompt Collaboration for few-shot whole slide image classification},
-  author={Yuan, Lulin and Zheng, Yifeng and Liu, Weiqiang and Zhao, Hong and Zhang, Wenjie and Wei, Baoya and Chen, Liming},
-  journal={Computerized Medical Imaging and Graphics},
-  pages={102768},
-  year={2026},
-  publisher={Elsevier}
-}
-```
-
-If you build on the TITAN backbone, please also cite the upstream model:
-
-> Ding, T. et al. *A multimodal whole-slide foundation model for pathology.*
-> Nature Medicine, 2025.
-
----
-
-## 6. License
+## License
 
 Code in this repository is released under the [Apache License 2.0](LICENSE).
 
@@ -299,13 +278,32 @@ request.
 
 ---
 
-## 7. Acknowledgements
+## Acknowledgements
 
-This work builds on:
+### Acknowledgements
 
-- **TITAN** (Ding et al., 2025) — slide-level multimodal foundation model.
-- **CONCH** (Lu et al., 2024) — patch-level vision-language pretraining.
-- **TRIDENT** (Zhang et al., 2025) — pathology data processing pipeline.
+This project is built on top of several outstanding open-source repositories:
 
-We thank the authors of these projects for releasing their code and
-models to the community.
+- **TITAN** (Ding et al., 2025): A slide-level multimodal foundation model.
+- **CONCH** (Lu et al., 2024): Patch-level vision-language pretraining.
+- **TRIDENT** (Zhang et al., 2025): A pathology data processing pipeline.
+
+We thank the authors of these works for their valuable contributions and for making their code and models available to the community.
+
+---
+
+##  Citation
+
+If you find our work useful in your research or if you use parts of this code please consider citing our paper:
+
+```
+@article{yuan2026sldpc,
+  title={SLDPC: Slide-Level Dual-Prompt Collaboration for few-shot whole slide image classification},
+  author={Yuan, Lulin and Zheng, Yifeng and Liu, Weiqiang and Zhao, Hong and Zhang, Wenjie and Wei, Baoya and Chen, Liming},
+  journal={Computerized Medical Imaging and Graphics},
+  pages={102768},
+  year={2026},
+  publisher={Elsevier}
+}
+```
+

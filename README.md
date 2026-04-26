@@ -234,8 +234,7 @@ the slide universe from `data/datasets/tcga_ot/tcga-ot_all.csv` and
 generates a fresh stratified 20/80 train-pool / test split for each
 seed. The K-shot training subset is then sampled from the train pool.
 Both the splits and the K-shot indices are recorded under
-`runs/.../seed_<seed>/splits/` so that any single seed is fully
-reproducible from the saved CSVs alone.
+`runs/.../seed_<seed>/splits/`.
 
 Outputs:
 

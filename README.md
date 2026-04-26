@@ -21,9 +21,6 @@ A reference implementation of SLDPC on the **TITAN** slide-level VLM backbone, i
 - A **zero-shot baseline** integrated into the same pipeline (TITAN's 23-template ensemble), which reproduces the "TITAN" rows of paper Table 2.
 - Training entrypoint, CLI, and dataset configs for **UBC-OCEAN, TCGA-NSCLC, TCGA-RCC, TCGA-OT**.
 
-> **Note on PRISM.** The paper additionally reports SLDPC+PRISM results.
-> The PRISM adapter is **not part of this release**. Only the TITAN code path is published here.
-
 ---
 
 ## Repository layout
@@ -180,17 +177,21 @@ project root ASCII-only. Spaces in the path are fine.
 
 ## 2. Authenticate for TITAN
 
-TITAN weights are gated on Hugging Face and are **not redistributed by this
-repository**. To run the code you must:
+This codebase loads the TITAN backbone directly from the official
+Hugging Face model hub at <https://huggingface.co/MahmoodLab/TITAN>.
+Two one-time steps:
 
-1. Request and accept access at <https://huggingface.co/MahmoodLab/TITAN>.
-2. Authenticate locally:
+1. Request access on the Hugging Face model page (the upstream gated
+   distribution). Approval is automatic for academic use after agreeing
+   to MahmoodLab's terms.
+2. Authenticate locally so `transformers` can pull the weights:
 
    ```bash
    huggingface-cli login
    ```
 
-If your environment is offline, point the CLI to a local snapshot:
+If you are working offline, point the CLI at a previously downloaded
+local snapshot instead:
 
 ```bash
 python scripts/train_titan.py \
@@ -204,119 +205,117 @@ python scripts/train_titan.py \
 ## 3. Prepare slide-level features
 
 This codebase consumes **pre-extracted slide-level features**, not raw WSIs.
-For each dataset you need a single `.pkl` file with two keys:
+Each dataset is loaded from a single `.pkl` file with two keys:
 
 | Key          | Type                         | Description                                                  |
 |--------------|------------------------------|--------------------------------------------------------------|
 | `embeddings` | `np.ndarray (N, 768)`        | Slide-level features from TITAN's slide encoder              |
 | `filenames`  | `list[str]` of length `N`    | Slide identifiers, matching the `slide_id` column of the CSV |
 
-The recommended extraction pipeline matches what the paper used:
+There are two paths to obtaining this file, depending on your dataset.
 
-1. **Tile the WSI** at 20× magnification into non-overlapping 512×512
-   patches inside tissue regions (HEST tissue/background segmentation).
-2. **Patch features**: extract a 768-dim feature per tile using
-   [CONCH](https://huggingface.co/MahmoodLab/CONCH).
-3. **Slide features**: aggregate patch features through TITAN's slide
-   encoder to get one 768-dim embedding per slide.
-4. **Pack** all `(slide_id, embedding)` pairs into a single `.pkl` with
-   the keys above.
+### Option A — TCGA features (use the official MahmoodLab release)
 
-The end-to-end **TRIDENT** pipeline (Zhang et al., 2025,
-[arXiv:2502.06750](https://arxiv.org/abs/2502.06750)) automates steps 1–3.
+For TCGA-NSCLC, TCGA-RCC, and TCGA-OT, MahmoodLab has already published
+the full TCGA TITAN slide features as a single `.pkl` on the TITAN
+Hugging Face hub. This is the recommended path for these three
+benchmarks — no preprocessing required.
 
-> The dataset CSVs under `data/datasets/<name>/` give the slide-id
-> universe and class labels for each benchmark, but **no feature files
-> or images are redistributed** in this repository — TITAN/CONCH outputs
-> are subject to the upstream licenses, and TCGA / UBC-OCEAN raw data
-> are subject to their respective data-use agreements. You must extract
-> the features yourself.
+```python
+from huggingface_hub import hf_hub_download
+
+slide_feature_path = hf_hub_download(
+    "MahmoodLab/TITAN",
+    filename="TCGA_TITAN_features.pkl",
+)
+print(slide_feature_path)
+# /root/.cache/huggingface/hub/.../TCGA_TITAN_features.pkl
+```
+
+The `.pkl` covers all of TCGA, so the same file works for the NSCLC,
+RCC, and OT subsets — the dataset CSVs under `data/datasets/<dataset>/`
+select the relevant slide IDs out of it.
+
+### Option B — Extract features yourself (UBC-OCEAN or any new cohort)
+
+For UBC-OCEAN or any cohort not covered by the official TITAN release,
+follow the standard MahmoodLab feature-extraction pipeline. There are
+two equivalent ways, both documented in the
+[TITAN README](https://github.com/mahmoodlab/TITAN):
+
+- **End-to-end via TRIDENT** ([`mahmoodlab/Trident`](https://github.com/mahmoodlab/Trident)):
+  WSI tiling, CONCHv1.5 patch features, and TITAN slide aggregation in
+  a single pipeline. This is the path that produced the paper's
+  numbers for non-TCGA cohorts.
+
+- **Manual two-step** (CLAM + TITAN):
+  use [`mahmoodlab/CLAM`](https://github.com/mahmoodlab/CLAM)'s
+  `extract_features_fp.py` with `--model_name conch_v1_5` to produce
+  patch features and coordinates, then call TITAN's
+  `encode_slide_from_patch_features(features, coords, patch_size_lv0)`
+  to obtain one slide embedding per WSI. Set `patch_size_lv0=512` for
+  20× tiling (`1024` for 40×). A worked example is in TITAN's
+  `notebooks/inference_demo.ipynb`.
+
+Either way, pack the resulting `(slide_id, embedding)` pairs into a
+single `.pkl` matching the schema above.
+
+### A note on what is and isn't in this repository
+
+The `data/datasets/<dataset>/` folders contain **only** slide-level
+metadata: slide IDs, OncoTree codes, and class labels. These are
+already public information (TCGA case manifests, the UBC-OCEAN Kaggle
+competition) and are committed here so that anyone can reproduce the
+exact split used in the paper without rerunning the data preparation
+step. Image pixels and extracted features are not in this repository
+because they belong upstream — TITAN/CONCH outputs ship with the
+MahmoodLab models, and TCGA/UBC-OCEAN raw slides are hosted by their
+respective consortia. The links above point to the official sources
+for each.
 
 ---
 
 ## 4. Run the main experiment
 
-UBC-OCEAN, 16-shot, 5 random seeds, fixed split (matches paper Table 1):
+A complete TCGA-OT run, 16-shot, 5 random seeds, using the default
+20/80 stratified split generated per seed:
 
 ```bash
 python scripts/train_titan.py \
-    --dataset ubc_ocean --few-shot-k 16 \
-    --features-path /path/to/UBC-OCEAN_titan_features.pkl \
-    --fixed-train-csv data/datasets/ubc_ocean/UBC-OCEAN_all_train.csv \
-    --fixed-test-csv  data/datasets/ubc_ocean/UBC-OCEAN_all_test.csv \
-    --n-seeds 5 \
-    --topk 4 --omega 0.6 --best-metric F1 \
-    --output-dir runs/main/ubc_ocean_k16
-```
-
-Outputs:
-
-- Per seed: `runs/.../seed_<s>/final_report.json` with `zero_shot`,
-  `stage1`, and `stage2` blocks.
-- Aggregated: `runs/.../seed_summary.json` with mean ± std across seeds.
-
-The defaults faithfully reproduce the legacy reference implementation
-that generated the paper's numbers. CLI flags are available to switch
-each algorithmic choice (loss, sampling strategy, eval mode, …) — run
-`python scripts/train_titan.py --help` for the full list.
-
-### Other datasets
-
-```bash
-# TCGA-NSCLC (2 classes)
-python scripts/train_titan.py --dataset tcga_nsclc --few-shot-k 16 \
-    --features-path /path/to/TCGA-NSCLC_titan_features.pkl \
-    --fixed-train-csv data/datasets/tcga_nsclc/TCGA-NSCLC_train.csv \
-    --fixed-test-csv  data/datasets/tcga_nsclc/TCGA-NSCLC_test.csv \
-    --n-seeds 5 --topk 2 --omega 0.8 \
-    --output-dir runs/main/tcga_nsclc_k16
-
-# TCGA-RCC (3 classes)
-python scripts/train_titan.py --dataset tcga_rcc --few-shot-k 16 \
-    --features-path /path/to/TCGA-RCC_titan_features.pkl \
-    --fixed-train-csv data/datasets/tcga_rcc/TCGA-RCC_train.csv \
-    --fixed-test-csv  data/datasets/tcga_rcc/TCGA-RCC_test.csv \
-    --n-seeds 5 --topk 3 --omega 0.8 \
-    --output-dir runs/main/tcga_rcc_k16
-
-# TCGA-OT (46 classes; pre-extracted slide features only)
-python scripts/train_titan.py --dataset tcga_ot --few-shot-k 16 \
-    --features-path /path/to/TCGA-OT_titan_features.pkl \
-    --fixed-train-csv data/datasets/tcga_ot/tcga-ot_train.csv \
-    --fixed-test-csv  data/datasets/tcga_ot/tcga-ot_test.csv \
+    --dataset tcga_ot --few-shot-k 16 \
+    --features-path /path/to/TCGA_TITAN_features.pkl \
     --n-seeds 5 --topk 4 --omega 0.8 \
     --output-dir runs/main/tcga_ot_k16
 ```
 
+`--features-path` should point at the `.pkl` you obtained in §3
+(typically the file returned by `hf_hub_download("MahmoodLab/TITAN",
+filename="TCGA_TITAN_features.pkl")`).
+
+Without `--fixed-train-csv` / `--fixed-test-csv`, the pipeline reads
+the slide universe from `data/datasets/tcga_ot/tcga-ot_all.csv` and
+generates a fresh stratified 20/80 train-pool / test split for each
+seed. The K-shot training subset is then sampled from the train pool.
+Both the splits and the K-shot indices are recorded under
+`runs/.../seed_<seed>/splits/` so that any single seed is fully
+reproducible from the saved CSVs alone.
+
+Outputs:
+
+- Per seed: `runs/.../seed_<seed>/final_report.json` with `zero_shot`,
+  `stage1`, and `stage2` blocks.
+- Aggregated: `runs/.../seed_summary.json` with mean ± std across seeds.
+
+For the full list of available CLI flags (loss family, sampling
+strategy, evaluation mode, fusion weight, prompt length, etc.), run:
+
+```bash
+python scripts/train_titan.py --help
+```
+
 ---
 
-## 5. Ablations and switches
-
-The most useful CLI knobs (paper Table 4 / Table 10 / Fig. 4):
-
-| Flag                                           | Effect                                                            |
-|------------------------------------------------|-------------------------------------------------------------------|
-| `--skip-stage2`                                | Run Stage-1 only (Table 4 Baseline / CPI-only).                   |
-| `--skip-stage1 --stage2-init random`           | Random `P'` init (Table 4 "w/o-CPI").                             |
-| `--stage2-dhno-mode {full,sampling_only,none}` | DHNO ablation (Table 4).                                          |
-| `--stage2-loss {symmetric,i2t,t2i,ce}`         | Loss-direction ablation (Table 10).                               |
-| `--stage2-eval-mode {fused,task,base}`         | Inference prompt: `P̃`, `P'`, or `P` (Eq. 9 / Table 4 WFM).      |
-| `--omega <float>`                              | Fusion weight ω in Eq. 9 (default 0.8 for most datasets).         |
-| `--topk <int>`                                 | Hard-negative count K in DHNO (Table 7/8).                        |
-| `--n-ctx <int>`                                | Learnable context length M (Table 5).                             |
-| `--csc`                                        | Class-specific context (Table 6); default off (class-unified).    |
-| `--skip-zero-shot`                             | Skip the TITAN zero-shot baseline (default: on).                  |
-
-### Hardware and time
-
-On a single NVIDIA RTX 3090 / 4090, a UBC-OCEAN 16-shot × 5-seed run
-takes roughly 6–10 minutes end-to-end (TITAN backbone is frozen; only
-~8.2K prompt parameters are trained). TCGA-OT (46 classes) is slower
-due to the larger text head — budget ~20 minutes.
-
----
-
-## 6. Citation
+## 5. Citation
 
 ```bibtex
 @article{Yuan2026SLDPC,
@@ -342,29 +341,31 @@ If you build on the TITAN backbone, please also cite the upstream model:
 
 ---
 
-## 7. License
+## 6. License
 
 Code in this repository is released under the [Apache License 2.0](LICENSE).
 
-Third-party constraints that apply when you use this code:
+A few upstream components have their own terms which are worth
+knowing about when you build on this work:
 
-- **TITAN weights** (`MahmoodLab/TITAN`): gated on Hugging Face under
-  CC-BY-NC-ND 4.0. **Not redistributed here.** Obtain access from the
-  upstream model page.
-- **CONCH weights** (`MahmoodLab/CONCH`): gated on Hugging Face. Used by
-  the upstream feature extraction pipeline, not by this repository
-  directly.
-- **TCGA / UBC-OCEAN data**: subject to their respective data-use
-  agreements. Only public slide identifiers and labels are included
-  in `data/datasets/`; no images, patches, or extracted features are
-  redistributed.
+- **TITAN weights** (`MahmoodLab/TITAN`) are released under CC-BY-NC-ND 4.0
+  on Hugging Face. They are loaded directly from the official model
+  hub at runtime (see §2).
+- **CONCH weights** (`MahmoodLab/CONCH`) are also released by MahmoodLab
+  on Hugging Face and are used by the upstream feature-extraction
+  pipeline.
+- **TCGA / UBC-OCEAN data** are hosted by the TCGA consortium and the
+  UBC-OCEAN Kaggle competition respectively. The CSVs in
+  `data/datasets/` carry only the public slide identifiers and class
+  labels needed to reproduce the paper's splits.
 
-If you redistribute features extracted with TITAN/CONCH, you are bound
-by the upstream license terms.
+If you publish features derived from TITAN or CONCH, please carry
+forward the upstream attribution and licensing as those projects
+request.
 
 ---
 
-## 8. Acknowledgements
+## 7. Acknowledgements
 
 This work builds on:
 

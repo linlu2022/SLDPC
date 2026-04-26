@@ -258,15 +258,13 @@ python scripts/train_titan.py --help
 ## 5. Citation
 
 ```bibtex
-@article{Yuan2026SLDPC,
-    author  = {Yuan, Lulin and Zheng, Yifeng and Liu, Weiqiang and Zhao, Hong and Zhang, Wenjie and Wei, Baoya and Chen, Liming},
-    title   = {{SLDPC}: Slide-Level Dual-Prompt Collaboration for few-shot whole slide image classification},
-    journal = {Computerized Medical Imaging and Graphics},
-    year    = {2026},
-    issn    = {0895-6111},
-    doi     = {10.1016/j.compmedimag.2026.102768},
-    url     = {https://www.sciencedirect.com/science/article/pii/S0895611126000716},
-    note    = {In Press, Journal Pre-proof. Available online 21 April 2026.},
+@article{yuan2026sldpc,
+  title={SLDPC: Slide-Level Dual-Prompt Collaboration for few-shot whole slide image classification},
+  author={Yuan, Lulin and Zheng, Yifeng and Liu, Weiqiang and Zhao, Hong and Zhang, Wenjie and Wei, Baoya and Chen, Liming},
+  journal={Computerized Medical Imaging and Graphics},
+  pages={102768},
+  year={2026},
+  publisher={Elsevier}
 }
 ```
 

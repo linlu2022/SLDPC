@@ -13,13 +13,12 @@ Published in *Computerized Medical Imaging and Graphics* (Elsevier), 2026.
 
 ## What this repository provides
 
-A reference implementation of SLDPC on the **TITAN** slide-level VLM backbone, including:
+A reference implementation of SLDPC on the slide-level VLM backbone, including:
 
 - **Stage-1**: Continuous Prompt Initialization (CPI) trained with cross-entropy.
 - **Stage-2**: Dynamic Hard Negative Sampling (DHNO) + symmetric InfoNCE (SICL).
 - **Inference**: Weighted fusion (WFM) of base prompt `P` and task-specific prompt `P'`.
-- A **zero-shot baseline** integrated into the same pipeline (TITAN's 23-template ensemble), which reproduces the "TITAN" rows of paper Table 2.
-- Training entrypoint, CLI, and dataset configs for **UBC-OCEAN, TCGA-NSCLC, TCGA-RCC, TCGA-OT**.
+- A **zero-shot baseline** integrated into the same pipeline.
 
 ---
 
@@ -29,7 +28,7 @@ A reference implementation of SLDPC on the **TITAN** slide-level VLM backbone, i
 SLDPC/
 ├── sldpc/
 │   ├── backbones/
-│   │   ├── registry.py             # get_backbone(name="titan", ...)
+│   │   ├── registry.py            
 │   │   └── titan/                  # PromptedTitan, TitanPromptLearner, encode_text
 │   ├── core/
 │   │   ├── prompt_learner_base.py  # P / P' / fused
@@ -135,10 +134,6 @@ Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
 python -c "import torch; print('cuda:', torch.cuda.is_available())"
 ```
 
-This should print `cuda: True`. If it prints `False`, your driver may
-be too old for cu117, or you may not have an NVIDIA GPU — see the
-"CPU-only" section below.
-
 **Tested**: Python 3.9.22, PyTorch 2.0.1+cu117, transformers 4.46.0,
 timm 1.0.3, einops 0.6.1.
 
@@ -159,19 +154,6 @@ and replace the GPU torch lines with their plain CPU equivalents:
 torch==2.0.1
 torchvision==0.15.2
 ```
-
-Training on CPU works but is roughly 30–50× slower per epoch.
-
-**Windows users**: clone or place this repository under a path that
-contains only ASCII characters (no Chinese, Japanese, accented letters,
-etc.). PyTorch 2.0.1 has a known Windows-specific issue
-([pytorch#98918](https://github.com/pytorch/pytorch/issues/98918),
-[pytorch#103949](https://github.com/pytorch/pytorch/issues/103949))
-where `torch.save` / `torch.load` fail with confusing
-*"Parent directory ... does not exist"* errors when the path contains
-multi-byte characters. This codebase already opens checkpoints via file
-handles to mitigate this, but the safest practice remains to keep the
-project root ASCII-only. Spaces in the path are fine.
 
 ---
 
@@ -216,10 +198,9 @@ There are two paths to obtaining this file, depending on your dataset.
 
 ### Option A — TCGA features (use the official MahmoodLab release)
 
-For TCGA-NSCLC, TCGA-RCC, and TCGA-OT, MahmoodLab has already published
+For TCGA-OT, MahmoodLab has already published
 the full TCGA TITAN slide features as a single `.pkl` on the TITAN
-Hugging Face hub. This is the recommended path for these three
-benchmarks — no preprocessing required.
+Hugging Face hub.
 
 ```python
 from huggingface_hub import hf_hub_download
@@ -232,46 +213,26 @@ print(slide_feature_path)
 # /root/.cache/huggingface/hub/.../TCGA_TITAN_features.pkl
 ```
 
-The `.pkl` covers all of TCGA, so the same file works for the NSCLC,
-RCC, and OT subsets — the dataset CSVs under `data/datasets/<dataset>/`
-select the relevant slide IDs out of it.
+### Option B — Extract features yourself 
 
-### Option B — Extract features yourself (UBC-OCEAN or any new cohort)
-
-For UBC-OCEAN or any cohort not covered by the official TITAN release,
-follow the standard MahmoodLab feature-extraction pipeline. There are
+Follow the standard MahmoodLab feature-extraction pipeline. There are
 two equivalent ways, both documented in the
 [TITAN README](https://github.com/mahmoodlab/TITAN):
 
 - **End-to-end via TRIDENT** ([`mahmoodlab/Trident`](https://github.com/mahmoodlab/Trident)):
   WSI tiling, CONCHv1.5 patch features, and TITAN slide aggregation in
-  a single pipeline. This is the path that produced the paper's
-  numbers for non-TCGA cohorts.
-
+  a single pipeline. 
+  
 - **Manual two-step** (CLAM + TITAN):
   use [`mahmoodlab/CLAM`](https://github.com/mahmoodlab/CLAM)'s
   `extract_features_fp.py` with `--model_name conch_v1_5` to produce
   patch features and coordinates, then call TITAN's
   `encode_slide_from_patch_features(features, coords, patch_size_lv0)`
   to obtain one slide embedding per WSI. Set `patch_size_lv0=512` for
-  20× tiling (`1024` for 40×). A worked example is in TITAN's
-  `notebooks/inference_demo.ipynb`.
+  20× tiling (`1024` for 40×). 
 
 Either way, pack the resulting `(slide_id, embedding)` pairs into a
 single `.pkl` matching the schema above.
-
-### A note on what is and isn't in this repository
-
-The `data/datasets/<dataset>/` folders contain **only** slide-level
-metadata: slide IDs, OncoTree codes, and class labels. These are
-already public information (TCGA case manifests, the UBC-OCEAN Kaggle
-competition) and are committed here so that anyone can reproduce the
-exact split used in the paper without rerunning the data preparation
-step. Image pixels and extracted features are not in this repository
-because they belong upstream — TITAN/CONCH outputs ship with the
-MahmoodLab models, and TCGA/UBC-OCEAN raw slides are hosted by their
-respective consortia. The links above point to the official sources
-for each.
 
 ---
 
@@ -289,8 +250,6 @@ python scripts/train_titan.py \
 ```
 
 `--features-path` should point at the `.pkl` you obtained in §3
-(typically the file returned by `hf_hub_download("MahmoodLab/TITAN",
-filename="TCGA_TITAN_features.pkl")`).
 
 Without `--fixed-train-csv` / `--fixed-test-csv`, the pipeline reads
 the slide universe from `data/datasets/tcga_ot/tcga-ot_all.csv` and
@@ -330,10 +289,6 @@ python scripts/train_titan.py --help
 }
 ```
 
-> **Note**: this entry corresponds to the *In Press, Journal Pre-proof*
-> version. Update `volume`, `number`, and `pages` once the final version
-> of record is assigned an issue.
-
 If you build on the TITAN backbone, please also cite the upstream model:
 
 > Ding, T. et al. *A multimodal whole-slide foundation model for pathology.*
@@ -372,8 +327,6 @@ This work builds on:
 - **TITAN** (Ding et al., 2025) — slide-level multimodal foundation model.
 - **CONCH** (Lu et al., 2024) — patch-level vision-language pretraining.
 - **TRIDENT** (Zhang et al., 2025) — pathology data processing pipeline.
-- **CoOp** / **DPC** — prompt-tuning families that inspired the
-  dual-prompt design.
 
 We thank the authors of these projects for releasing their code and
 models to the community.

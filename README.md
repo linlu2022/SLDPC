@@ -5,9 +5,7 @@ Official codebase for:
 **SLDPC: Slide-Level Dual-Prompt Collaboration for Few-Shot Whole Slide Image Classification**
 
 Published in *Computerized Medical Imaging and Graphics* (Elsevier), 2026.
-[Article on ScienceDirect](https://www.sciencedirect.com/science/article/pii/S0895611126000716)
 &nbsp;·&nbsp; DOI: [10.1016/j.compmedimag.2026.102768](https://doi.org/10.1016/j.compmedimag.2026.102768)
-&nbsp;·&nbsp; *In Press, Journal Pre-proof*
 
 ---
 
